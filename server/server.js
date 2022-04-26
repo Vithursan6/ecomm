@@ -5,6 +5,7 @@ const app = express();
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 const expressValidator = require("express-validator");
 require("dotenv").config();
 
@@ -15,7 +16,7 @@ const catRoutes = require("./routes/category");
 const productRoutes = require("./routes/product");
 
 //mongoose database connection
-mongoose.connect(process.env.DATABASE, {})
+mongoose.connect(process.env.MONGODB_URI, {})
     .then(() => console.log("ecomm_db connected"));
 
 
@@ -24,6 +25,7 @@ app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(expressValidator());
+app.use(cors());
 
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);

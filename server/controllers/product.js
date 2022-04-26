@@ -52,7 +52,7 @@ exports.post = (req, res) => {
                 }
         product.save((err, result) => {
             if (err) {
-                return res.staus(400).json({
+                return res.status(400).json({
                     error: errorHandler(err)
                 });
             }
@@ -130,3 +130,53 @@ exports.update = (req, res) => {
         });
     });
 };
+
+  
+exports.listSearch = (req, res) => {
+    let order = req.body.order ? req.body.order : "desc";
+    let sortBy = req.body.sortBy ? req.body.sortBy : "_id";
+    let limit = req.body.limit ? parseInt(req.body.limit) : 100;
+    let skip = parseInt(req.body.skip);
+    let findArgs = {};
+  
+    for (let key in req.body.filters) {
+        if (req.body.filters[key].length > 0) {
+            if (key === "price") {
+                findArgs[key] = {
+                    $gte: req.body.filters[key][0],
+                    $lte: req.body.filters[key][1]
+                };
+            } else {
+                findArgs[key] = req.body.filters[key];
+            }
+        }
+    }
+  
+    Product.find(findArgs)
+        .select("-photo")
+        .populate("category")
+        .sort([[sortBy, order]])
+        .skip(skip)
+        .limit(limit)
+        .exec((err, data) => {
+            if (err) {
+                return res.status(400).json({
+                    error: "No search results found"
+                });
+            }
+            res.json({
+                size: data.length,
+                data
+            });
+        });
+};
+
+exports.pic = (req, res, next) => {
+    if (req.product.photo.data) {
+        res.set("Content-Type", req.product.photo.contentType);
+        return res.send(req.product.photo.data);
+    }
+    next();
+};
+
+
